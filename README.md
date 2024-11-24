@@ -1,184 +1,194 @@
-# **Sensor Simulation System**
+# Sensor System Simulation
 
-This project simulates real-world sensor data and sends it to a Node.js server, which stores the data and provides a user interface to display real-time sensor measurements and statistics. The system can simulate a range of sensors, including temperature, humidity, dangerous gases, and radiation.
+This project simulates sensor data collection, storage, and retrieval via a REST API. The backend uses **Node.js**, **MongoDB**, and **Express**, while the frontend is built with **HTML**, **JavaScript**, and **Bootstrap** for a modern and responsive UI.
 
-## **Table of Contents**
+## Features
 
-- [**Sensor Simulation System**](#sensor-simulation-system)
-  - [**Table of Contents**](#table-of-contents)
-  - [**Overview**](#overview)
-  - [**Technologies**](#technologies)
-  - [**Features**](#features)
-  - [**Project Structure**](#project-structure)
-  - [**Setup and Installation**](#setup-and-installation)
-    - [**C++ Simulation Setup**](#c-simulation-setup)
-    - [**Node.js Server Setup**](#nodejs-server-setup)
-  - [**How to Run**](#how-to-run)
-    - [**Running the C++ Simulation**](#running-the-c-simulation)
-    - [**Running the Node.js Server**](#running-the-nodejs-server)
-    - [**Accessing the Web Interface**](#accessing-the-web-interface)
-  - [**Endpoints**](#endpoints)
-  - [**UI Features**](#ui-features)
-  - [**Future Improvements**](#future-improvements)
-  - [**License**](#license)
+- **Backend API**: 
+  - RESTful endpoints to post and retrieve sensor data.
+  - Data is stored in a MongoDB database.
+- **Frontend**:
+  - Dynamic tables to display sensor data (Gas, Temperature, Humidity, and Radiation sensors).
+  - Bootstrap-styled interface for a modern look.
+- **Simulation of Multiple Sensor Types**: 
+  - GasSensor
+  - TemperatureSensor
+  - HumiditySensor
+  - RadiationSensor
+
+## Requirements
+
+### Server
+
+- **Node.js** (v14.x or higher)
+- **MongoDB** (locally or remotely hosted)
+- **npm** (Node package manager)
+
+### C++ Part
+
+- **C++** (v20)
+- **CMake** (build system)
+- **Visual Studio Community Edition** (v2022)
+
+## Installation and Setup
+
+Follow these steps to set up the project on your local machine.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/sensor-system-simulation.git
+cd sensor-system-simulation
+```
+
+### 2. Install dependencies
+
+From the project root directory, install the required dependencies for the backend:
+
+```bash
+cd server
+npm install
+```
+
+This will install all the necessary Node.js packages, including **express**, **mongodb**, and **body-parser**.
+
+### 3. Set up MongoDB
+
+Ensure that MongoDB is installed and running locally or that you have access to a remote MongoDB database. If you're using a local MongoDB setup, the server will connect to `mongodb://localhost:27017/sensor_data`.
+
+### 4. Run the Backend Server
+
+In the `server` directory, run the backend server using the following command:
+
+```bash
+node server.js
+```
+
+You should see the following output indicating the server is running and connected to MongoDB:
+
+```bash
+Server running at http://localhost:3000
+Connected to MongoDB.
+```
+
+The server will expose a REST API at `http://localhost:3000` that you can use to interact with the sensor data.
+
+### 5. Run the Frontend Server
+
+To serve the `index.html` file with the simulated sensor data table, you'll need to run a local HTTP server. You can use **http-server**, which can be installed globally with `npm`:
+
+```bash
+npm install -g http-server
+```
+
+Once installed, navigate to the `server/public` directory and run:
+
+```bash
+http-server -p 8090
+```
+
+You should see output like this:
+
+```bash
+Starting up http-server, serving ./
+http-server version: 14.1.1
+Available on:
+  http://192.168.56.1:8090
+  http://127.0.0.1:8090
+```
+
+Access the frontend by opening `http://localhost:8090` in your web browser. The page will display the sensor data fetched from the backend API.
 
 ---
 
-## **Overview**
+## API Endpoints
 
-This project demonstrates how to simulate real-world sensor data, transmit it to a server, store the data, and visualize it through a web-based dashboard. The sensor simulation is written in C++ and includes a variety of environmental sensors. The server side is implemented in Node.js, which handles storing data in an SQLite database and serves a frontend for real-time data display and statistics.
+### 1. POST `/sensor-data`
 
-## **Technologies**
+To add sensor data, make a POST request with the sensor type and value in JSON format. The endpoint will return a success message with the ID of the inserted data.
 
-- **C++**: For simulating sensor data and sending it to the server.
-- **libcurl**: For making HTTP requests from C++.
-- **Node.js + Express**: Server for receiving data and serving the frontend.
-- **SQLite**: Lightweight database for storing sensor data.
-- **HTML/CSS/JavaScript**: Frontend for displaying real-time data and statistics.
+**Request Example (using `curl`):**
 
-## **Features**
-
-- **Sensor Simulation**: Simulates multiple types of sensors (temperature, humidity, gas levels, radiation).
-- **Real-time Data**: Sensor data is updated every minute and sent to the server.
-- **Database Storage**: All sensor data is saved to an SQLite database for future reference.
-- **Web Interface**: A clean and responsive UI displays current sensor data and statistics, including:
-  - Min, max, and average values for each sensor type.
-- **Statistics Calculation**: The system calculates the minimum, maximum, and average values for each sensor reading over time.
-
-## **Project Structure**
-
-```
-sensor-simulation-system/
-│
-├── server/                   # Node.js server code
-│   ├── package.json           # Node.js dependencies
-│   ├── server.js              # Main server script
-│   ├── database.js            # SQLite database handling
-│   ├── statistics.js          # Statistics calculation module
-│   ├── public/                # Frontend files for the UI
-│   │   ├── index.html         # Main UI file
-│   │   ├── styles.css         # CSS for styling the UI
-│   │   ├── script.js          # Frontend logic and data fetching
-│   └── data/                  # SQLite database folder
-│       └── sensorData.db      # SQLite database file
-│
-├── simulation/                # C++ sensor simulation code
-│   ├── main.cpp               # Main program for sensor data simulation
-│   ├── sensors/               # Folder for different sensor types
-│   │   ├── Sensor.h           # Base class for sensors
-│   │   ├── TemperatureSensor.h# Temperature sensor class
-│   │   ├── HumiditySensor.h    # Humidity sensor class
-│   │   ├── GasSensor.h        # Dangerous gas sensor class
-│   │   ├── RadiationSensor.h  # Radiation sensor class
-│   └── http_client/           # C++ HTTP client to send sensor data
-│       ├── HttpClient.h       # HTTP client header
-│       └── HttpClient.cpp     # HTTP client implementation
-│
-└── README.md                  # Instructions for running the project
+```bash
+curl -X POST http://localhost:3000/sensor-data -H "Content-Type: application/json" -d "{\"sensorType\": \"GasSensor\", \"value\": 0.45}"
 ```
 
-## **Setup and Installation**
+**Response Example:**
 
-### **C++ Simulation Setup**
+```json
+{
+  "message": "Sensor data added with ID: 6742e7d82370261cc37c2b0d"
+}
+```
 
-1. **Install `libcurl`**:
-   
-   The C++ simulation sends data to the Node.js server using HTTP requests. You will need to install `libcurl` for this:
+### 2. GET `/sensor-data`
 
-   ```bash
-   # For Debian/Ubuntu:
-   sudo apt-get install libcurl4-openssl-dev
-   
-   # For macOS (with Homebrew):
-   brew install curl
-   ```
+To retrieve all sensor data, make a GET request to the `/sensor-data` endpoint. The data will be returned in JSON format.
 
-2. **Compile the Simulation Code**:
+**Request Example (using a browser or `curl`):**
 
-   Navigate to the `simulation/` directory and compile the C++ simulation:
+```bash
+curl -X GET http://localhost:3000/sensor-data
+```
 
-   ```bash
-   cd simulation
-   g++ -o simulation main.cpp http_client/HttpClient.cpp -lcurl
-   ```
+**JSON Response Example:**
 
-### **Node.js Server Setup**
+![JSON Response Example](./docs/images/raw_sensor_data.png)
 
-1. **Install Node.js** (if not installed):
+**HTML Example**
 
-   - You can install Node.js from [here](https://nodejs.org/).
+![JSON Response Example](./docs/images/ui_sensor_data.png)
 
-2. **Install Dependencies**:
+---
 
-   Navigate to the `server/` directory and install the required Node.js dependencies:
+## Troubleshooting
 
-   ```bash
-   cd server
-   npm install
-   ```
+If you encounter issues with the server, here are some common errors and solutions:
 
-## **How to Run**
+### 1. Server not starting
 
-### **Running the C++ Simulation**
+**Error Message:**
 
-1. Once you have compiled the C++ code, you can run the sensor simulation, which will send data every 60 seconds to the Node.js server:
+```
+Failed to connect to localhost port 3000.
+```
 
-   ```bash
-   ./simulation
-   ```
+**Solution:** Ensure MongoDB is running locally or that you've set up the correct MongoDB URI in the server. Check if the database connection is configured properly.
 
-2. The simulation will log sensor values for temperature, humidity, gas levels, and radiation to the console and send the data to the server.
+---
 
-### **Running the Node.js Server**
+### 2. Invalid JSON format errors when sending POST requests
 
-1. In the `server/` directory, start the Node.js server:
+**Error Message:**
 
-   ```bash
-   node server.js
-   ```
+```
+{"error":"Invalid JSON format."}
+```
 
-2. The server will be available on `http://localhost:3000`.
+**Solution:** Ensure that your JSON payload is correctly formatted. Use double quotes for both keys and string values in JSON:
 
-### **Accessing the Web Interface**
+```bash
+curl -X POST http://localhost:3000/sensor-data -H "Content-Type: application/json" -d "{\"sensorType\": \"GasSensor\", \"value\": 0.45}"
+```
 
-Open your browser and navigate to `http://localhost:3000` to view the sensor data dashboard.
+Note: Incorrect syntax, such as missing or mismatched quotes, will lead to this error.
 
-## **Endpoints**
+---
 
-- **POST /sensor-data**:
-  - Receives sensor data from the C++ simulation. This endpoint expects a JSON payload with the following structure:
-    ```json
-    {
-        "temperature": 23.5,
-        "humidity": 40.1,
-        "gas": 0.5,
-        "radiation": 0.002
-    }
-    ```
+## Running Tests
 
-- **GET /sensor-data**:
-  - Returns the most recent sensor data in JSON format.
+To run tests on your API endpoints, you can use tools such as **Postman** or **cURL** to simulate POST and GET requests. Alternatively, you can integrate testing libraries like **Mocha** and **Chai** for automated testing in the `server` directory.
 
-- **GET /statistics**:
-  - Returns statistical data (min, max, avg) for each sensor reading.
+---
 
-## **UI Features**
+## Future Enhancements
 
-The user interface provides the following functionalities:
+- **User Authentication**: Secure access to the sensor data via user authentication (JWT, OAuth).
+- **Data Visualization**: Integrate a charting library (e.g., Chart.js) to display sensor data over time visually.
+- **Data Filtering and Sorting**: Implement options to filter and sort the sensor data based on date, type, and value.
 
-- **Real-time Sensor Data**: 
-  - Displays the latest temperature, humidity, gas, and radiation levels updated every minute.
-  
-- **Statistics Section**: 
-  - Displays the minimum, maximum, and average values for each sensor type, calculated from all stored data.
+---
 
-## **Future Improvements**
+## License
 
-- **Enhanced Error Handling**: Add more robust error handling on the server and simulation side.
-- **Alert System**: Implement thresholds for dangerous levels of gases or radiation to trigger warnings in the UI.
-- **User Authentication**: Add user authentication for secure access to sensor data and statistics.
-- **Mobile Responsiveness**: Improve the UI for better mobile support.
-
-## **License**
-
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -1,45 +1,50 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./data/sensorData.db');
+const path = require('path');
 
-// Create table if it doesn't exist
+// Database setup
+const dbPath = path.join(__dirname, 'data', 'sensorData.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Failed to connect to database:', err.message);
+    } else {
+        console.log('Connected to SQLite database');
+    }
+});
+
+// Create table if not exists
 db.run(`
-    CREATE TABLE IF NOT EXISTS sensor_data (
-        id INTEGER PRIMARY KEY,
-        temperature REAL,
-        humidity REAL,
-        gas REAL,
-        radiation REAL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    CREATE TABLE IF NOT EXISTS SensorData (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sensorType TEXT NOT NULL,
+        value REAL NOT NULL,
+        timestamp TEXT NOT NULL
     )
 `);
 
-function saveSensorData(temperature, humidity, gas, radiation) {
-    db.run(
-        `INSERT INTO sensor_data (temperature, humidity, gas, radiation) VALUES (?, ?, ?, ?)`,
-        [temperature, humidity, gas, radiation]
-    );
-}
-
-function getLatestData(callback) {
-    db.get(`SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1`, [], (err, row) => {
-        if (err) throw err;
-        callback(row);
+// Save sensor data
+exports.saveSensorData = (sensorType, value, timestamp) => {
+    return new Promise((resolve, reject) => {
+        const query = `INSERT INTO SensorData (sensorType, value, timestamp) VALUES (?, ?, ?)`;
+        db.run(query, [sensorType, value, timestamp], function (err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(this.lastID);
+            }
+        });
     });
-}
+};
 
-function getStatistics(callback) {
-    db.get(
-        `SELECT MIN(temperature) as minTemp, MAX(temperature) as maxTemp, AVG(temperature) as avgTemp,
-                MIN(humidity) as minHum, MAX(humidity) as maxHum, AVG(humidity) as avgHum,
-                MIN(gas) as minGas, MAX(gas) as maxGas, AVG(gas) as avgGas,
-                MIN(radiation) as minRad, MAX(radiation) as maxRad, AVG(radiation) as avgRad
-         FROM sensor_data`,
-        [],
-        (err, row) => {
-            if (err) throw err;
-            callback(row);
-        }
-    );
-}
-
-module.exports = { saveSensorData, getStatistics, getLatestData };
+// Get statistics
+exports.getStatistics = () => {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT sensorType, AVG(value) AS average, MAX(value) AS max, MIN(value) AS min FROM SensorData GROUP BY sensorType`;
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
